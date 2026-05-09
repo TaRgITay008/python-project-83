@@ -1,6 +1,17 @@
--- Создание таблицы urls (совместимо с SQLite и PostgreSQL)
+-- Создание таблицы urls
 CREATE TABLE IF NOT EXISTS urls (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Создание таблицы url_checks
+CREATE TABLE IF NOT EXISTS url_checks (
+    id SERIAL PRIMARY KEY,
+    url_id INTEGER NOT NULL REFERENCES urls(id) ON DELETE CASCADE,
+    status_code INTEGER,
+    h1 TEXT,
+    title TEXT,
+    description TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

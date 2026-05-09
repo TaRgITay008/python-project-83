@@ -15,6 +15,17 @@
     </nav>
 
     <main class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
         <h1>Сайт: {{ url.name }}</h1>
         
         <div class="mt-4" data-test="url">
@@ -35,9 +46,41 @@
                 </tbody>
             </table>
         </div>
-        
+
+        <form method="post" action="/urls/{{ url.id }}/checks" class="mt-4">
+            <input type="submit" class="btn btn-primary" value="Запустить проверку">
+        </form>
+
         <h2 class="mt-4">Проверки</h2>
-        <a href="#" class="btn btn-primary">Запустить проверку</a>
+        
+        <table class="table table-bordered" data-test="checks">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Код ответа</th>
+                    <th>h1</th>
+                    <th>title</th>
+                    <th>description</th>
+                    <th>Дата создания</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for check in checks %}
+                <tr>
+                    <td>{{ check.id }}</td>
+                    <td>{{ check.status_code or '' }}</td>
+                    <td>{{ check.h1 or '' }}</td>
+                    <td>{{ check.title or '' }}</td>
+                    <td>{{ check.description or '' }}</td>
+                    <td>{{ check.created_at }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6">Нет проверок</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </main>
 </body>
 </html>

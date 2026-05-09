@@ -4,7 +4,10 @@ import os
 import validators
 from flask import Flask, render_template, request, redirect, url_for, flash
 from dotenv import load_dotenv
-from page_analyzer.db import add_url, get_url, get_all_urls, normalize_url, init_db
+from page_analyzer.db import (
+    add_url, get_url, get_all_urls_with_last_check, 
+    get_checks_for_url, add_check, init_db
+)
 
 load_dotenv()
 
@@ -56,17 +59,33 @@ def create_app():
 
     @app.route('/urls/<int:id>')
     def show_url(id):
-        """Show URL details."""
+        """Show URL details and checks."""
         url = get_url(id)
         if not url:
             flash('Страница не найдена', 'danger')
             return redirect(url_for('index'))
-        return render_template('url.html', url=url)
+        
+        checks = get_checks_for_url(id)
+        return render_template('url.html', url=url, checks=checks)
+
+    @app.route('/urls/<int:id>/checks', methods=['POST'])
+    def create_check(id):
+        """Create a new check for URL."""
+        url = get_url(id)
+        if not url:
+            flash('Страница не найдена', 'danger')
+            return redirect(url_for('index'))
+        
+        # Пока создаём проверку без реальных данных (будет в следующем шаге)
+        add_check(id)
+        flash('Страница успешно проверена', 'success')
+        
+        return redirect(url_for('show_url', id=id))
 
     @app.route('/urls')
     def list_urls():
-        """Show all URLs."""
-        urls = get_all_urls()
+        """Show all URLs with last check date."""
+        urls = get_all_urls_with_last_check()
         return render_template('urls.html', urls=urls)
 
     return app
