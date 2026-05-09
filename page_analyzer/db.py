@@ -80,7 +80,7 @@ def get_url(url_id):
 
 
 def get_all_urls_with_last_check():
-    """Get all URLs with last check date."""
+    """Get all URLs with last check date and status code."""
     conn = get_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute("""
@@ -88,7 +88,8 @@ def get_all_urls_with_last_check():
             u.id, 
             u.name, 
             u.created_at,
-            MAX(uc.created_at) as last_check_at
+            MAX(uc.created_at) as last_check_at,
+            (SELECT status_code FROM url_checks WHERE url_id = u.id ORDER BY created_at DESC LIMIT 1) as last_status_code
         FROM urls u
         LEFT JOIN url_checks uc ON u.id = uc.url_id
         GROUP BY u.id, u.name, u.created_at

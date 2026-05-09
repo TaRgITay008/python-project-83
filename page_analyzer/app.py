@@ -1,6 +1,7 @@
 """Flask application for page analyzer."""
 
 import os
+import requests
 import validators
 from flask import Flask, render_template, request, redirect, url_for, flash
 from dotenv import load_dotenv
@@ -70,15 +71,24 @@ def create_app():
 
     @app.route('/urls/<int:id>/checks', methods=['POST'])
     def create_check(id):
-        """Create a new check for URL."""
+        """Create a new check for URL by making a real HTTP request."""
         url = get_url(id)
         if not url:
             flash('Страница не найдена', 'danger')
             return redirect(url_for('index'))
         
-        # Пока создаём проверку без реальных данных
-        add_check(id)
-        flash('Страница успешно проверена', 'success')
+        try:
+            # Выполняем реальный HTTP-запрос
+            response = requests.get(url['name'], timeout=5)
+            response.raise_for_status()
+            
+            # Если успешно — сохраняем проверку с кодом ответа
+            add_check(id, status_code=response.status_code)
+            flash('Страница успешно проверена', 'success')
+            
+        except (requests.exceptions.RequestException, requests.exceptions.Timeout):
+            # Любая ошибка сети, таймаут, 4xx, 5xx
+            flash('Произошла ошибка при проверке', 'danger')
         
         return redirect(url_for('show_url', id=id))
 
