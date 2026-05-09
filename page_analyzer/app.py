@@ -4,7 +4,7 @@ import os
 import validators
 from flask import Flask, render_template, request, redirect, url_for, flash
 from dotenv import load_dotenv
-from page_analyzer.db import add_url, get_url, get_all_urls, normalize_url
+from page_analyzer.db import add_url, get_url, get_all_urls, normalize_url, init_db
 
 load_dotenv()
 
@@ -16,6 +16,12 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-for-development')
     app.config['DATABASE_URL'] = os.getenv('DATABASE_URL')
 
+    # Инициализируем базу данных
+    try:
+        init_db()
+    except Exception as e:
+        print(f"DB init error: {e}")
+
     @app.route('/')
     def index():
         """Home page."""
@@ -26,7 +32,6 @@ def create_app():
         """Add new URL to database."""
         url = request.form.get('url', '').strip()
 
-        # Валидация
         if not url:
             flash('URL обязателен', 'danger')
             return render_template('index.html'), 422
