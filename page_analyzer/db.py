@@ -126,7 +126,5 @@ def add_check(url_id, status_code=None, h1=None, title=None, description=None):
         (url_id, status_code, h1, title, description, datetime.now())
     )
     conn.commit()
-    check_id = cur.fetchone()[0] if cur.rowcount else None
     cur.close()
     conn.close()
-    return check_id

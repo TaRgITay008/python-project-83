@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from dotenv import load_dotenv
 from page_analyzer.db import (
     add_url, get_url, get_all_urls_with_last_check, 
-    get_checks_for_url, add_check, init_db
+    get_checks_for_url, add_check, init_db, normalize_url
 )
 
 load_dotenv()
@@ -76,7 +76,7 @@ def create_app():
             flash('Страница не найдена', 'danger')
             return redirect(url_for('index'))
         
-        # Пока создаём проверку без реальных данных (будет в следующем шаге)
+        # Пока создаём проверку без реальных данных
         add_check(id)
         flash('Страница успешно проверена', 'success')
         
