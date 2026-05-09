@@ -27,7 +27,8 @@ def init_db():
         cur.execute("""
             CREATE TABLE IF NOT EXISTS url_checks (
                 id SERIAL PRIMARY KEY,
-                url_id INTEGER NOT NULL REFERENCES urls(id) ON DELETE CASCADE,
+                url_id INTEGER NOT NULL REFERENCES urls(id)
+                    ON DELETE CASCADE,
                 status_code INTEGER,
                 h1 TEXT,
                 title TEXT,
@@ -52,7 +53,8 @@ def add_url(url):
     cur = conn.cursor()
     try:
         cur.execute(
-            "INSERT INTO urls (name, created_at) VALUES (%s, %s) RETURNING id",
+            "INSERT INTO urls (name, created_at) VALUES (%s, %s)"
+            " RETURNING id",
             (normalized, datetime.now())
         )
         url_id = cur.fetchone()[0]
@@ -72,7 +74,10 @@ def get_url(url_id):
     """Get URL by id."""
     conn = get_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT id, name, created_at FROM urls WHERE id = %s", (url_id,))
+    cur.execute(
+        "SELECT id, name, created_at FROM urls WHERE id = %s",
+        (url_id,)
+    )
     url = cur.fetchone()
     cur.close()
     conn.close()
@@ -84,12 +89,14 @@ def get_all_urls_with_last_check():
     conn = get_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute("""
-        SELECT 
-            u.id, 
-            u.name, 
+        SELECT
+            u.id,
+            u.name,
             u.created_at,
             MAX(uc.created_at) as last_check_at,
-            (SELECT status_code FROM url_checks WHERE url_id = u.id ORDER BY created_at DESC LIMIT 1) as last_status_code
+            (SELECT status_code FROM url_checks
+             WHERE url_id = u.id
+             ORDER BY created_at DESC LIMIT 1) as last_status_code
         FROM urls u
         LEFT JOIN url_checks uc ON u.id = uc.url_id
         GROUP BY u.id, u.name, u.created_at
@@ -122,7 +129,8 @@ def add_check(url_id, status_code=None, h1=None, title=None, description=None):
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at) "
+        "INSERT INTO url_checks "
+        "(url_id, status_code, h1, title, description, created_at) "
         "VALUES (%s, %s, %s, %s, %s, %s)",
         (url_id, status_code, h1, title, description, datetime.now())
     )

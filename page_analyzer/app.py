@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, redirect, url_for, flash
 from dotenv import load_dotenv
 from page_analyzer.db import (
-    add_url, get_url, get_all_urls_with_last_check, 
+    add_url, get_url, get_all_urls_with_last_check,
     get_checks_for_url, add_check, init_db, normalize_url
 )
 
@@ -26,43 +26,23 @@ def truncate(text, length=200):
 def parse_seo_tags(html_content):
     """Parse HTML and extract h1, title, and meta description."""
     soup = BeautifulSoup(html_content, 'html.parser')
-    
-    # Извлекаем h1
+
     h1_tag = soup.find('h1')
     h1 = h1_tag.get_text(strip=True) if h1_tag else None
-    
-    # Извлекаем title
+
     title_tag = soup.find('title')
     title = title_tag.get_text(strip=True) if title_tag else None
-    
-    # Извлекаем meta description
+
     meta_desc = soup.find('meta', attrs={'name': 'description'})
     description = meta_desc.get('content', '').strip() if meta_desc else None
-    
+
     return h1, title, description
 
 
-def create_app():
-    """Create and configure Flask application."""
-    app = Flask(__name__)
-
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-for-development')
-    app.config['DATABASE_URL'] = os.getenv('DATABASE_URL')
-
-    # Инициализируем базу данных
-    try:
-        init_db()
-    except Exception as e:
-        print(f"DB init error: {e}")
-
-    @app.route('/')
-    def index():
-        """Home page."""
-        return render_template('index.html')
-
+def add_new_url_route(app):
+    """Route for adding new URL."""
     @app.route('/urls', methods=['POST'])
     def add_new_url():
-        """Add new URL to database."""
         url = request.form.get('url', '').strip()
 
         if not url:
@@ -87,54 +67,80 @@ def create_app():
 
         return redirect(url_for('show_url', id=url_id))
 
+
+def show_url_route(app):
+    """Route for showing URL details."""
     @app.route('/urls/<int:id>')
     def show_url(id):
-        """Show URL details and checks."""
         url = get_url(id)
         if not url:
             flash('Страница не найдена', 'danger')
             return redirect(url_for('index'))
-        
+
         checks = get_checks_for_url(id)
         return render_template('url.html', url=url, checks=checks)
 
+
+def create_check_route(app):
+    """Route for creating a check."""
     @app.route('/urls/<int:id>/checks', methods=['POST'])
     def create_check(id):
-        """Create a new check for URL by making a real HTTP request."""
         url = get_url(id)
         if not url:
             flash('Страница не найдена', 'danger')
             return redirect(url_for('index'))
-        
+
         try:
-            # Выполняем реальный HTTP-запрос
             response = requests.get(url['name'], timeout=5)
             response.raise_for_status()
-            
-            # Парсим SEO-теги из HTML
+
             h1, title, description = parse_seo_tags(response.text)
-            
-            # Сохраняем проверку с кодом ответа и SEO-тегами
+
             add_check(
-                id, 
+                id,
                 status_code=response.status_code,
                 h1=truncate(h1),
                 title=truncate(title),
                 description=truncate(description)
             )
             flash('Страница успешно проверена', 'success')
-            
-        except (requests.exceptions.RequestException, requests.exceptions.Timeout):
-            # Любая ошибка сети, таймаут, 4xx, 5xx
+
+        except (requests.exceptions.RequestException,
+                requests.exceptions.Timeout):
             flash('Произошла ошибка при проверке', 'danger')
-        
+
         return redirect(url_for('show_url', id=id))
 
+
+def list_urls_route(app):
+    """Route for listing all URLs."""
     @app.route('/urls')
     def list_urls():
-        """Show all URLs with last check date."""
         urls = get_all_urls_with_last_check()
         return render_template('urls.html', urls=urls)
+
+
+def create_app():
+    """Create and configure Flask application."""
+    app = Flask(__name__)
+
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key')
+    app.config['DATABASE_URL'] = os.getenv('DATABASE_URL')
+
+    try:
+        init_db()
+    except Exception as e:
+        print(f"DB init error: {e}")
+
+    @app.route('/')
+    def index():
+        return render_template('index.html')
+
+    # Подключаем все маршруты
+    add_new_url_route(app)
+    show_url_route(app)
+    create_check_route(app)
+    list_urls_route(app)
 
     return app
 
