@@ -3,6 +3,7 @@
 import os
 import requests
 import validators
+from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, redirect, url_for, flash
 from dotenv import load_dotenv
 from page_analyzer.db import (
@@ -11,6 +12,34 @@ from page_analyzer.db import (
 )
 
 load_dotenv()
+
+
+def truncate(text, length=200):
+    """Truncate text to specified length with ellipsis."""
+    if not text:
+        return ''
+    if len(text) <= length:
+        return text
+    return text[:length] + '...'
+
+
+def parse_seo_tags(html_content):
+    """Parse HTML and extract h1, title, and meta description."""
+    soup = BeautifulSoup(html_content, 'html.parser')
+    
+    # Извлекаем h1
+    h1_tag = soup.find('h1')
+    h1 = h1_tag.get_text(strip=True) if h1_tag else None
+    
+    # Извлекаем title
+    title_tag = soup.find('title')
+    title = title_tag.get_text(strip=True) if title_tag else None
+    
+    # Извлекаем meta description
+    meta_desc = soup.find('meta', attrs={'name': 'description'})
+    description = meta_desc.get('content', '').strip() if meta_desc else None
+    
+    return h1, title, description
 
 
 def create_app():
@@ -82,8 +111,17 @@ def create_app():
             response = requests.get(url['name'], timeout=5)
             response.raise_for_status()
             
-            # Если успешно — сохраняем проверку с кодом ответа
-            add_check(id, status_code=response.status_code)
+            # Парсим SEO-теги из HTML
+            h1, title, description = parse_seo_tags(response.text)
+            
+            # Сохраняем проверку с кодом ответа и SEO-тегами
+            add_check(
+                id, 
+                status_code=response.status_code,
+                h1=truncate(h1),
+                title=truncate(title),
+                description=truncate(description)
+            )
             flash('Страница успешно проверена', 'success')
             
         except (requests.exceptions.RequestException, requests.exceptions.Timeout):
