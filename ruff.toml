@@ -1,6 +1,6 @@
 line-length = 80
 
-[per-file-ignores]
+[lint.per-file-ignores]
 "__init__.py" = ["F401"]
 
 [lint]

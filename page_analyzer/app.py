@@ -1,13 +1,20 @@
 """Flask application for page analyzer."""
 
 import os
+
 import requests
 import validators
-from flask import Flask, render_template, request, redirect, url_for, flash
 from dotenv import load_dotenv
+from flask import Flask, flash, redirect, render_template, request, url_for
+
 from page_analyzer.db import (
-    add_url, get_url, get_all_urls_with_last_check,
-    get_checks_for_url, add_check, init_db, normalize_url
+    add_check,
+    add_url,
+    get_all_urls_with_last_check,
+    get_checks_for_url,
+    get_url,
+    init_db,
+    normalize_url,
 )
 from page_analyzer.parser import parse_seo_tags, truncate
 

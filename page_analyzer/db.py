@@ -1,10 +1,11 @@
 """Database utilities for page analyzer."""
 
 import os
-import psycopg2
-from psycopg2.extras import RealDictCursor
 from datetime import datetime
 from urllib.parse import urlparse
+
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 
 def get_connection():
