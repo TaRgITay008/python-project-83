@@ -3,40 +3,15 @@
 import os
 import requests
 import validators
-from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, redirect, url_for, flash
 from dotenv import load_dotenv
 from page_analyzer.db import (
     add_url, get_url, get_all_urls_with_last_check,
     get_checks_for_url, add_check, init_db, normalize_url
 )
+from page_analyzer.parser import parse_seo_tags, truncate
 
 load_dotenv()
-
-
-def truncate(text, length=200):
-    """Truncate text to specified length with ellipsis."""
-    if not text:
-        return ''
-    if len(text) <= length:
-        return text
-    return text[:length] + '...'
-
-
-def parse_seo_tags(html_content):
-    """Parse HTML and extract h1, title, and meta description."""
-    soup = BeautifulSoup(html_content, 'html.parser')
-
-    h1_tag = soup.find('h1')
-    h1 = h1_tag.get_text(strip=True) if h1_tag else None
-
-    title_tag = soup.find('title')
-    title = title_tag.get_text(strip=True) if title_tag else None
-
-    meta_desc = soup.find('meta', attrs={'name': 'description'})
-    description = meta_desc.get('content', '').strip() if meta_desc else None
-
-    return h1, title, description
 
 
 def add_new_url_route(app):
@@ -136,7 +111,6 @@ def create_app():
     def index():
         return render_template('index.html')
 
-    # Подключаем все маршруты
     add_new_url_route(app)
     show_url_route(app)
     create_check_route(app)

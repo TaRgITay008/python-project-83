@@ -28,3 +28,6 @@ test:
 	uv run pytest
 
 .PHONY: install dev start build render-start lint test
+
+lint:
+	uv run ruff check page_analyzer
