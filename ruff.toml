@@ -1,8 +1,8 @@
 line-length = 80
 
-[tool.ruff.lint.per-file-ignores]
+[per-file-ignores]
 "__init__.py" = ["F401"]
 
-[tool.ruff.lint]
+[lint]
 preview = true
 select = ["E", "F", "I", "C90"]
