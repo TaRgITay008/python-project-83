@@ -1,7 +1,7 @@
 ### Hexlet tests and linter status:
 [![Actions Status](https://github.com/TaRgITay008/python-project-83/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/TaRgITay008/python-project-83/actions)
 [![Lint](https://github.com/TaRgITay008/python-project-83/actions/workflows/lint.yml/badge.svg)](https://github.com/TaRgITay008/python-project-83/actions/workflows/lint.yml)
-
+[![Quality](https://img.shields.io/badge/quality-checked-brightgreen)](https://github.com/TaRgITay008/python-project-83)
 ## Page Analyzer
 
 Page Analyzer — это веб-приложение для SEO-анализа сайтов.
